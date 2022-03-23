@@ -24,3 +24,12 @@ NOTE: If not already install, use pip to install package venv through terminal:
 ### 3: Install project dependencies
 
     pip install -f requirements.txt
+
+### 4: Start mongodb and run import_data script:
+    mongod
+    python import_data.py
+
+### 5: Start Flask app (and add FLASK env variables to system env variables)
+    set FLASK_APP=app
+    set FLASK_ENV=development
+    flask run
