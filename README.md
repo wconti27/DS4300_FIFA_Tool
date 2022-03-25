@@ -23,7 +23,7 @@ NOTE: If not already install, use pip to install package venv through terminal:
 
 ### 3: Install project dependencies
 
-    pip install -f requirements.txt
+    pip install -r requirements.txt
 
 ### 4: Start mongodb and run import_data script:
     mongod
