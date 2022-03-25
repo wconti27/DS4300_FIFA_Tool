@@ -1,6 +1,9 @@
-from flask import Flask
+from flask import Flask, request
+from app.data_service import MongoAPI
 
 app = Flask(__name__)
+
+mongo_api = MongoAPI()
 
 
 @app.route("/")
@@ -10,6 +13,13 @@ def hello():
 # TODO: Create additional routing for other pages on app
 
 # TODO: Create api routing for get requests, make calls to DB for associated data
+
+@app.route("/api/v1/players/", methods=["GET"])
+def get_players():
+    query_params = request.args
+    mongo_api.get_players(query_params)
+
+
 
 if __name__ == '__main__':
     app.run()
