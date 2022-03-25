@@ -4,7 +4,6 @@
 
 ### 1: Run the following command to clone repo into folder of your choosing.
 
-
     git clone https://github.com/wconti27/DS4300_FIFA_Tool.git
 
 ### 2: Create a virtual environment (.venv) to handle project dependencies and activate it. 

@@ -18,6 +18,9 @@ def main():
             data_json = json.loads(data.to_json(orient='records'))
             players_collection.insert_many(data_json)
             print("Successfully loaded data for", file)
+
+        # TODO: Add indexes to data collection for quicker queries
+
     else:
         print("Data has been previously loaded.")
 
