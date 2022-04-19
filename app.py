@@ -17,7 +17,8 @@ def hello():
 @app.route("/api/v1/players/", methods=["GET"])
 def get_players():
     query_params = request.args
-    mongo_api.get_players(query_params)
+    players = mongo_api.get_players(query_params)
+    return players
 
 
 
