@@ -11,6 +11,7 @@ basic query example format:
     "defense": 50 (would mean to search for defense above 50)
     "shooting": 60 Same as above
     "price": 2,000,000 # get players with cost below $2MM
+    "projection": "Basic" # only return the basic fields
 }
 
 Also add a --help argument that can output all the possible fields to filter on such as below:
@@ -18,6 +19,7 @@ Also add a --help argument that can output all the possible fields to filter on 
 
 Basic
 --------
+long name
 overall
 potential
 wage_eur
