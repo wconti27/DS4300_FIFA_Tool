@@ -1,5 +1,6 @@
 from flask import Flask, request
-from app.data_service import MongoAPI
+from fifa_app.data_service import MongoAPI
+from flask import jsonify
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ def hello():
 def get_players():
     query_params = request.args
     players = mongo_api.get_players(query_params)
-    return players
+    return jsonify(players)
 
 
 

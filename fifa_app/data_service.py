@@ -1,6 +1,5 @@
 import pymongo
-from type_map import projections
-
+from fifa_app.type_map import projections
 
 
 categorical_fields = [
@@ -9,7 +8,8 @@ categorical_fields = [
     "club_position",
     "player_positions",
     "nationality_name",
-    "physic"
+    "physic",
+    "year",
 ]
 
 fields_to_use_less_than = [
@@ -19,12 +19,12 @@ fields_to_use_less_than = [
 
 class MongoAPI():
 
-    def MongoAPI(self):
+    def __init__(self):
         self.connection = pymongo.MongoClient("mongodb://localhost:27017/")
         self.db = self.connection["fifa"]
         self.players_collection = self.db["players"]
 
-    def get_players(self, query_params_dict):
+    def get_players(self, query_params_dict: dict):
         """
         query_params_dict:
 
@@ -38,23 +38,35 @@ class MongoAPI():
         """
         match = {}
         fields = list(query_params_dict.keys())
+        mutable_dict = dict(query_params_dict)
         if "year" not in fields:
             match["year"] = 2022
         if "gender" not in fields:
-            match["gender"] = "Male"
-        for field in fields:
+            match["gender"] = "M"
+        if "projection" in fields:
+            projection = projections[str.lower(query_params_dict["projection"])]
+            del mutable_dict["projection"]
+        else:
+            projection = projections["basic"]
+        for field in list(mutable_dict.keys()):
             if field in categorical_fields:
                 match[field] = query_params_dict[field]
             elif field in fields_to_use_less_than:
-                match[field] = {"$lt": query_params_dict[field]}
+                match[field] = {"$lt": int(query_params_dict[field])}
             else:
-                match[field] = {"$gt": query_params_dict[field]}
+                match[field] = {"$gt": int(query_params_dict[field])}
+        r = self.players_collection.find(filter=match, projection=projection, limit=50)
 
-        if "projection" in fields:
-            projection = projections[str.lower(query_params_dict["projection"])]
-        else:
-            projection = projections["basic"]
-        return self.players_collection.find(filter=match, projection=projection, limit=50)
+        result = {
+            "num_results": 0,
+            "players": [],
+        }
+        for player in r:
+            del player["_id"]
+            result["players"].append(player)
+        print(result)
+        return result
+
         
 
 
