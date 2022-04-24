@@ -1,5 +1,5 @@
 basic_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "potential": 1,
     "wage_eur": 1,
@@ -9,18 +9,15 @@ basic_projection = {
     "player_positions": 1,
     "nationality_name": 1,
     "pace": 1,
-    "attacking": 1,
     "shooting": 1,
     "passing": 1,
     "dribbling": 1,
     "defending": 1,
-    "goalkeeping": 1,
 }
 
 attacking_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
-    "attacking": 1,
     "shooting": 1,
     "passing": 1,
     "attacking_crossing": 1,
@@ -31,7 +28,7 @@ attacking_projection = {
 }
 
 defending_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "defending": 1,
     "defending_marking_awareness": 1,
@@ -41,7 +38,7 @@ defending_projection = {
 }
 
 goalkeeping_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "goalkeeping_diving": 1,
     "goalkeeping_handling": 1,
@@ -52,7 +49,7 @@ goalkeeping_projection = {
 }
 
 physical_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "physic": 1,
     "height_cm": 1,
@@ -66,7 +63,7 @@ physical_projection = {
 }
 
 mentality_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "mentality_aggression": 1,
     "mentality_interceptions": 1,
@@ -77,7 +74,7 @@ mentality_projection = {
 }
 
 position_projection = {
-    "long_name": 1,
+    "short_name": 1,
     "overall": 1,
     "player_positions": 1,
     "ls": 1,

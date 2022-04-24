@@ -19,7 +19,7 @@ Also add a --help argument that can output all the possible fields to filter on 
 
 Basic
 --------
-long name
+short_name
 overall
 potential
 wage_eur
