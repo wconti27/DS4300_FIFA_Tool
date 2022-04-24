@@ -73,7 +73,7 @@ class MongoAPI():
 
     def get_player(self, player: str, year: str, stats_projection="basic", gender="M") -> dict:
         result = self.players_collection.find(filter={"short_name": player, "year": year, "gender": gender}, projection=projections[stats_projection], limit=1)
-        returned_player = ""
+        returned_player = None
         for p in result:
             returned_player=p
             del p["_id"]

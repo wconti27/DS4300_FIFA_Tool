@@ -111,3 +111,60 @@ rcb
 rb
 gk
 """
+import requests
+
+def call_get_player():
+    body = {'year': '2016', 'name': 'L. Messi'}
+    r = requests.get("http://127.0.0.1:5000/api/v1/player/", params=body)
+
+def call_get_players():
+    body = {"year":"2016","pace":90,"club_name":"FC Barcelona","projection":"attacking"}
+    r = requests.get("http://127.0.0.1:5000/api/v1/players/", params=body)
+
+def call_get_team():
+    data = {"username":"wconti","team_name":"wills_team","year":"2016"}
+    team = requests.get("http://127.0.0.1:5000/api/v1/team/", params=data)
+
+def call_create_team():
+    headers = {'content-type': 'application/json'}
+    body = {
+        "user": "wconti", 
+        "team_name": "wills_team", 
+        "year": "2016", 
+        "players": [
+            {"CF": "L. Messi"}, 
+            {"ST": "L. Su\\u00e1rez"}, 
+            {"LW": "Neymar"}, 
+            {"CDM": "Sergio Busquets"}, 
+            {"CB": "Piqu\\u00e9"}, 
+            {"RB": "Dani Alves"}, 
+            {"CM": "I. Rakiti\\u0107"}, 
+            {"LB": "Jordi Alba"}, 
+            {"CB": "J. Mathieu"}, 
+            {"GK": "M. ter Stegen"}, 
+            {"LM": "A. Turan"}
+        ]
+    }
+
+    r = requests.post("http://127.0.0.1:5000/api/v1/team/", data=body, headers=headers)
+
+def call_edit_team(): # Switches player
+    headers = {'content-type': 'application/json'}
+    request = {
+        "user": "wconti", 
+        "team_name": "wills_team", 
+        "year": "2016", 
+        "original_player_name": "J. Mathieu", 
+        "replacing_player_name": "Thiago Silva"
+    }
+
+    r = requests.put("http://127.0.0.1:5000/api/v1/team/edit/", data=request, headers=headers)
+
+def call_get_player_recommendations():
+    recs = {"year":"2016","wage":10000000,"position":"CB","stat_to_optimize":"overall"}
+
+    r = requests.get("http://127.0.0.1:5000/api/v1/team/replace/", params=recs)
+
+
+
+    
