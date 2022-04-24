@@ -9,10 +9,12 @@ basic_projection = {
     "player_positions": 1,
     "nationality_name": 1,
     "pace": 1,
+    "attacking": 1,
     "shooting": 1,
     "passing": 1,
     "dribbling": 1,
     "defending": 1,
+    "goalkeeping": 1,
 }
 
 attacking_projection = {
