@@ -11,6 +11,7 @@ categorical_fields = [
     "nationality_name",
     "physic",
     "year",
+    "short_name"
 ]
 
 fields_to_use_less_than = [
