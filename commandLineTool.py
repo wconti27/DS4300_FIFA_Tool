@@ -1,24 +1,24 @@
 import pandas as pd
-from fifa_app.data_service import MongoAPI
+import requests
+import json
 
-api = MongoAPI()
 def main():
-    api = MongoAPI()
     type_q = choose_query()
     if type_q == 'Basic Search':
-        ret = basic_search(api)
+        ret = basic_search()
         print(ret)
     elif type_q == 'Advanced Search':
-        ret = advanced_search(api)
+        ret = advanced_search()
         print(ret)
     else:
-        ret = ultimate_team_handler(api)
+        ret = ultimate_team_handler()
 
 
-def ultimate_team_handler(api):
+def ultimate_team_handler():
     queries = {1: 'Input Team', 2: 'Replace player', 3: 'Replacement recommender'}
     prompting = True
     q = prompt_builder(queries)
+    user_input = None
     while prompting:
         user_input = int(input(q))
         if user_input in queries.keys():
@@ -27,12 +27,12 @@ def ultimate_team_handler(api):
             print('INPUT NOT RECOGNIZED')
 
     if user_input == 1:
-        input_team(api)
+        input_team()
     #elif user_input == 2:
         #replace_playeer()
 
 
-def input_team(api):
+def input_team():
     players = []
     year = choose_year()
     username = input("Enter a username")
@@ -43,7 +43,8 @@ def input_team(api):
         rets = {'num_results': 0}
         c = 0
         while rets['num_results'] == 0 and c < len(names):
-            rets = api.get_players({'year': year, 'short_name': names[c]})
+            body = {'year': year, 'short_name': names[c]}
+            rets = requests.get("http://127.0.0.1:5000/api/v1/player/", params=body).json()
             print(names[c])
             c += 1
         if rets['num_results'] == 0:
@@ -52,8 +53,14 @@ def input_team(api):
             rets = rets["players"][0]
             print(rets)
             players.append({rets['player_positions'][0]: rets['short_name']})
-
-    return api.create_team(username, teamname, year, players)
+    headers = {'content-type': 'application/json'}
+    body = {
+        "user": username,
+        "team_name": teamname,
+        "year": year,
+        "players": players,
+    }
+    return requests.post("http://127.0.0.1:5000/api/v1/team/", data=json.dumps(body), headers=headers).json()
 
 def choose_query():
     print("Fifa Search engine V1\n")
@@ -77,11 +84,11 @@ def prompt_builder(queries):
 
 
 
-def basic_search(api):
+def basic_search():
     year = choose_year()
     constraints = choose_constraints()
     constraints['year'] = year
-    players = api.get_players(constraints)["players"]
+    players = requests.get("http://127.0.0.1:5000/api/v1/players/", params=constraints).json()["players"]
     df = pd.DataFrame(players)
     return df
 
@@ -89,14 +96,15 @@ def get_names(name):
     names = name.split(" ")
     return [name, names[0][0]+". "+names[1], names[0], names[1]]
 
-def advanced_search(api):
+def advanced_search():
     year = choose_year()
     player = input("input a player name: First Last\n")
     names = get_names(player)
     rets = {'num_results': 0}
     c=0
     while rets['num_results'] == 0 and c < len(names):
-        rets = api.get_players({'year':year, 'short_name': names[c]})
+        body = {'year':year, 'short_name': names[c]}
+        rets = requests.get("http://127.0.0.1:5000/api/v1/players/", params=body).json()
         print(names[c])
         c+=1
     if len(rets) == 0:
@@ -109,7 +117,7 @@ def advanced_search(api):
             rets[key] = constraints[key]
 
         rets['year'] = year
-        players = api.get_players(rets)["players"]
+        players = requests.get("http://127.0.0.1:5000/api/v1/players/", params=rets).json()["players"]
         df = pd.DataFrame(players)
         return df
 
@@ -262,5 +270,6 @@ NUMERICS = ['overall',
      ]
 
 
-main()
+if __name__ == "__main__":
+    main()
 

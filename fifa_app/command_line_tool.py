@@ -146,7 +146,7 @@ def call_create_team():
         ]
     }
 
-    r = requests.post("http://127.0.0.1:5000/api/v1/team/", data=body, headers=headers)
+    r = requests.post("http://127.0.0.1:5000/api/v1/team/", data=json.dumps(body), headers=headers)
 
 def call_edit_team(): # Switches player
     headers = {'content-type': 'application/json'}
@@ -158,7 +158,7 @@ def call_edit_team(): # Switches player
         "replacing_player_name": "Thiago Silva"
     }
 
-    r = requests.put("http://127.0.0.1:5000/api/v1/team/edit/", data=request, headers=headers)
+    r = requests.put("http://127.0.0.1:5000/api/v1/team/edit/", data=json.dumps(request), headers=headers)
 
 def call_get_player_recommendations():
     recs = {"year":"2016","wage":10000000,"position":"CB","stat_to_optimize":"overall"}
