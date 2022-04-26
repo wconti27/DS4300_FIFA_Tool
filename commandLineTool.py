@@ -3,14 +3,19 @@ from fifa_app.data_service import MongoAPI
 
 api = MongoAPI()
 def main():
+    pd.options.display.max_columns = 999
     api = MongoAPI()
     type_q = choose_query()
     if type_q == 'Basic Search':
         ret = basic_search(api)
         print(ret)
+        main()
     elif type_q == 'Advanced Search':
         ret = advanced_search(api)
         print(ret)
+        main()
+    elif type_q == 'Quit':
+        return 'Quit'
     else:
         ret = ultimate_team_handler(api)
 
@@ -28,8 +33,14 @@ def ultimate_team_handler(api):
 
     if user_input == 1:
         input_team(api)
-    #elif user_input == 2:
-        #replace_playeer()
+        main()
+    elif user_input == 2:
+        replace_player(api)
+        main()
+    elif user_input == 3:
+        recommendation(api)
+        main()
+
 
 
 def input_team(api):
@@ -44,20 +55,80 @@ def input_team(api):
         c = 0
         while rets['num_results'] == 0 and c < len(names):
             rets = api.get_players({'year': year, 'short_name': names[c]})
-            print(names[c])
             c += 1
         if rets['num_results'] == 0:
             print('Player not found')
         else:
             rets = rets["players"][0]
-            print(rets)
             players.append({rets['player_positions'][0]: rets['short_name']})
+    print("Team Successfully Inputted")
+    api.create_team(username, teamname, year, players)
+    return print(pd.DataFrame(api.get_team(username,teamname)["players"]))
 
-    return api.create_team(username, teamname, year, players)
+def replace_player(api):
+    team = None
+    while team == None:
+        username = input("Input your username\n")
+        team_name = input("Input your team name\n")
+        team = api.get_team(username, team_name)
+        if team == None:
+            print("Username Or Team Name not recognised\n")
+    year = choose_year()
+
+    player = input("Input the name of the player that you want to add to the team: First Last\n")
+    player_to_replace = input("Input the name of the player that you want to replace: First Last\n")
+
+
+    names = get_names(player)
+    rets = {'num_results': 0}
+    c = 0
+    while rets['num_results'] == 0 and c < len(names):
+        rets = api.get_players({'year': year, 'short_name': names[c]})
+        c += 1
+    if rets['num_results'] == 0:
+        print('Player not found')
+    else:
+        new_player = rets['players'][0]["short_name"]
+
+    previous_team = pd.DataFrame(team["players"])
+    names_rep = get_names(player_to_replace)
+    for i in names_rep:
+        if i in list(previous_team['short_name']):
+            print(i, "previous player")
+            api.edit_team(username, team_name, year, i, new_player)
+            print("Player successfully returned")
+            break
+        elif i == names_rep[-1]:
+            print('Player to replace not on team')
+    team = api.get_team(username, team_name)
+    print(pd.DataFrame(team["players"]))
+
+def recommendation(api):
+    year = choose_year()
+    position = None
+    stat = None
+    print("input a position from the following list")
+    for x in POSITIONS:
+        print(x)
+    while position not in POSITIONS:
+        if position != None:
+            print("Invalid position, enter one from the list")
+        position = input().upper()
+
+    wage = int(input("input a maximum salary\n"))
+    print("select a stat to maxamize")
+    for x in STATSLIST:
+        print(x)
+    while stat not in STATSLIST:
+        if stat != None:
+            print("Invalid stat, enter one from the list")
+        stat = input().lower()
+
+    print(pd.DataFrame(api.get_player_recommendation(year,position, wage,stat)['players']))
 
 def choose_query():
     print("Fifa Search engine V1\n")
-    queries = {1: 'Basic Search', 2: 'Advanced Search', 3: 'Ultimate Team Recommender'}
+    queries = {1: 'Basic Search', 2: 'Advanced Search', 3: 'Ultimate Team Recommender', 4: 'Quit'}
     prompting = True
     q = prompt_builder(queries)
     while prompting:
@@ -97,7 +168,6 @@ def advanced_search(api):
     c=0
     while rets['num_results'] == 0 and c < len(names):
         rets = api.get_players({'year':year, 'short_name': names[c]})
-        print(names[c])
         c+=1
     if len(rets) == 0:
         print('Player not found')
@@ -260,6 +330,36 @@ NUMERICS = ['overall',
      'mentality_penalties',
      'mentality_composure',
      ]
+
+
+STATSLIST= ['overall', 'pace', 'shooting', 'passing', 'attacking', 'dribbling', 'defending']
+
+POSITIONS = ['LS',
+ 'ST',
+ 'RS',
+ 'LW',
+ 'LF',
+ 'CF',
+ 'RF',
+ 'RW',
+ 'LAM',
+ 'CAM',
+ 'RAM',
+ 'LM',
+ 'LCM',
+ 'CM',
+ 'RCM',
+ 'RM',
+ 'LWB',
+ 'LDM',
+ 'CDM',
+ 'RDM',
+ 'RWB',
+ 'LB',
+ 'LCB',
+ 'CB',
+ 'RCB',
+ 'RB']
 
 
 main()

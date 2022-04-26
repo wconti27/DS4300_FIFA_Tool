@@ -202,6 +202,7 @@ class MongoAPI():
                         for stat in team_stats:
                             team_stats[stat] -= int(original_player_stats[stat] / 11)
                             team_stats[stat] += int(new_player_stats[stat] / 11)
+                            new_player_stats["ultimate_team_position"] = player["ultimate_team_position"]
                     new_players.append(new_player_stats)
                 else:
                     new_players.append(player)
