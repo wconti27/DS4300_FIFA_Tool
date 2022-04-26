@@ -1,26 +1,28 @@
 import pandas as pd
-from fifa_app.data_service import MongoAPI
+import requests
+import json
 
-api = MongoAPI()
+API_ENDPOINT = "http://127.0.0.1:5000/api/v1"
+HEADERS = {'content-type': 'application/json'}
+
 def main():
     pd.options.display.max_columns = 999
-    api = MongoAPI()
     type_q = choose_query()
     if type_q == 'Basic Search':
-        ret = basic_search(api)
+        ret = basic_search()
         print(ret)
         main()
     elif type_q == 'Advanced Search':
-        ret = advanced_search(api)
+        ret = advanced_search()
         print(ret)
         main()
     elif type_q == 'Quit':
         return 'Quit'
     else:
-        ret = ultimate_team_handler(api)
+        ret = ultimate_team_handler()
 
 
-def ultimate_team_handler(api):
+def ultimate_team_handler():
     queries = {1: 'Input Team', 2: 'Replace player', 3: 'Replacement recommender'}
     prompting = True
     q = prompt_builder(queries)
@@ -32,99 +34,122 @@ def ultimate_team_handler(api):
             print('INPUT NOT RECOGNIZED')
 
     if user_input == 1:
-        input_team(api)
+        input_team()
         main()
     elif user_input == 2:
-        replace_player(api)
+        replace_player()
         main()
     elif user_input == 3:
-        recommendation(api)
+        recommendation()
         main()
 
 
 
-def input_team(api):
+def input_team():
     players = []
     year = choose_year()
-    username = input("Enter a username")
-    teamname = input("Enter a team name")
+    username = input("\nEnter a username: \n")
+    teamname = input("\nEnter a team name: \n")
     while len(players) < 11:
-        player = input("Input a player that you would like to add to your team: First Last\n")
+        player = input("\nInput a player that you would like to add to your team: First Last\n")
         names = get_names(player)
         rets = {'num_results': 0}
         c = 0
         while rets['num_results'] == 0 and c < len(names):
-            rets = api.get_players({'year': year, 'short_name': names[c]})
+            body = {'year': year, 'short_name': names[c]}
+            rets = requests.get(f"{API_ENDPOINT}/players/", params=body).json()
             c += 1
         if rets['num_results'] == 0:
             print('Player not found')
         else:
-            rets = rets["players"][0]
+            rets = list(rets["players"])[0]
             players.append({rets['player_positions'][0]: rets['short_name']})
     print("Team Successfully Inputted")
-    api.create_team(username, teamname, year, players)
-    return print(pd.DataFrame(api.get_team(username,teamname)["players"]))
+    body = {
+        "user": username,
+        "team_name": teamname,
+        "year": year,
+        "players": players,
+    }
+    requests.post(f"{API_ENDPOINT}/team/", data=json.dumps(body), headers=HEADERS)
+    body = {"username":username,"team_name":teamname}
+    return print(pd.DataFrame(requests.get(f"{API_ENDPOINT}/team/", params=body).json()["players"]))
 
-def replace_player(api):
+def replace_player():
     team = None
     while team == None:
-        username = input("Input your username\n")
-        team_name = input("Input your team name\n")
-        team = api.get_team(username, team_name)
+        username = input("\nInput your username\n")
+        teamname = input("\nInput your team name\n")
+        body = {"username":username,"team_name":teamname}
+        team = requests.get(f"{API_ENDPOINT}/team/", params=body).json()
         if team == None:
             print("Username Or Team Name not recognised\n")
     year = choose_year()
 
-    player = input("Input the name of the player that you want to add to the team: First Last\n")
-    player_to_replace = input("Input the name of the player that you want to replace: First Last\n")
+    player = input("\nInput the name of the player that you want to add to the team: First Last\n")
+    player_to_replace = input("\nInput the name of the player that you want to replace: First Last\n")
 
 
     names = get_names(player)
     rets = {'num_results': 0}
     c = 0
     while rets['num_results'] == 0 and c < len(names):
-        rets = api.get_players({'year': year, 'short_name': names[c]})
+        body = {'year': year, 'short_name': names[c]}
+        rets = requests.get(f"{API_ENDPOINT}/players/", params=body).json()
         c += 1
     if rets['num_results'] == 0:
         print('Player not found')
     else:
-        new_player = rets['players'][0]["short_name"]
+        new_player = list(rets['players'])[0]["short_name"]
 
     previous_team = pd.DataFrame(team["players"])
     names_rep = get_names(player_to_replace)
     for i in names_rep:
         if i in list(previous_team['short_name']):
             print(i, "previous player")
-            api.edit_team(username, team_name, year, i, new_player)
+            body = {
+                "user": username, 
+                "team_name": teamname, 
+                "year": year, 
+                "original_player_name": i, 
+                "replacing_player_name": new_player,
+            }
+            requests.put(f"{API_ENDPOINT}/team/edit/", data=json.dumps(body), headers=HEADERS)
             print("Player successfully returned")
             break
         elif i == names_rep[-1]:
             print('Player to replace not on team')
-    team = api.get_team(username, team_name)
+    body = {"username": username, "team_name": teamname}
+    team = requests.get("http://127.0.0.1:5000/api/v1/team/", params=body).json()
     print(pd.DataFrame(team["players"]))
 
-def recommendation(api):
+def recommendation():
     year = choose_year()
     position = None
     stat = None
-    print("input a position from the following list")
+    print("\nInput a position from the following list\n")
     for x in POSITIONS:
         print(x)
     while position not in POSITIONS:
         if position != None:
-            print("Invalid position, enter one from the list")
+            print("\nInvalid position, enter one from the list\n")
         position = input().upper()
 
-    wage = int(input("input a maximum salary\n"))
-    print("select a stat to maxamize")
+    wage = int(input("\ninput a maximum salary\n"))
+    print("\nselect a stat to maxamize\n")
     for x in STATSLIST:
         print(x)
     while stat not in STATSLIST:
         if stat != None:
-            print("Invalid stat, enter one from the list")
+            print("\nInvalid stat, enter one from the list\n")
         stat = input().lower()
-
-    print(pd.DataFrame(api.get_player_recommendation(year,position, wage,stat)['players']))
+    body = {
+        "year": year,
+        "wage": wage,
+        "position": position,
+        "stat_to_optimize": stat,
+    }
+    print(pd.DataFrame(requests.get(f"{API_ENDPOINT}/team/replace/", params=body).json()['players']))
 
 def choose_query():
     print("Fifa Search engine V1\n")
@@ -148,26 +173,31 @@ def prompt_builder(queries):
 
 
 
-def basic_search(api):
+def basic_search():
     year = choose_year()
     constraints = choose_constraints()
     constraints['year'] = year
-    players = api.get_players(constraints)["players"]
+    players = requests.get(f"{API_ENDPOINT}/players/", params=constraints).json()["players"]
     df = pd.DataFrame(players)
     return df
 
 def get_names(name):
     names = name.split(" ")
-    return [name, names[0][0]+". "+names[1], names[0], names[1]]
+    try:
+        potential_names = [name, names[0][0]+". "+names[1], names[0], names[1]]
+    except:
+        potential_names = names
+    return potential_names
 
-def advanced_search(api):
+def advanced_search():
     year = choose_year()
-    player = input("input a player name: First Last\n")
+    player = input("\nInput a player name: First Last\n")
     names = get_names(player)
     rets = {'num_results': 0}
     c=0
     while rets['num_results'] == 0 and c < len(names):
-        rets = api.get_players({'year':year, 'short_name': names[c]})
+        body = {'year':year, 'short_name': names[c]}
+        rets = requests.get(f"{API_ENDPOINT}/players/", params=body).json()
         c+=1
     if len(rets) == 0:
         print('Player not found')
@@ -179,13 +209,13 @@ def advanced_search(api):
             rets[key] = constraints[key]
 
         rets['year'] = year
-        players = api.get_players(rets)["players"]
+        players = requests.get(f"{API_ENDPOINT}/players/", params=rets).json()["players"]
         df = pd.DataFrame(players)
         return df
 
 
 def choose_constraints(counter=0):
-    print("For a list of fields to search on, type --help")
+    print("\nFor a list of fields to search on, type --help")
     stop = False
     constraints = {}
     while not stop:
@@ -194,7 +224,7 @@ def choose_constraints(counter=0):
         if counter == 0:
             temp = input('Enter field and value separated by a comma. Value must be 1-99 for attributes.\n')
         else:
-            temp = input('Type \'search\' to search on inputted constraints or add another constraint: Enter field and value separated by a comma. Value must be 1-99 for attributes\n')
+            temp = input('\nType \'search\' to search on inputted constraints or add another constraint: Enter field and value separated by a comma. Value must be 1-99 for attributes\n')
         if temp.lower() == 'search':
             stop = True
             break
@@ -225,12 +255,12 @@ def choose_year():
     years = list(range(2015, 2023))
     year = 0
     while int(year) not in years:
-        year = input("Input a year to search 2015-2022\n")
+        year = input("\nInput a year to search 2015-2022\n")
     return year
 
 
 HELP = ['Basic Statistics',
-        '--------',
+        '----------------',
         'short_name',
         'overall',
         'potential',
@@ -246,8 +276,9 @@ HELP = ['Basic Statistics',
         'passing',
         'dribbling',
         'defending',
+        "\n",
         'Attacking Statistics',
-        '---------',
+        '--------------------',
         'shooting',
         'passing',
         'attacking_crossing',
@@ -255,11 +286,13 @@ HELP = ['Basic Statistics',
         'attacking_heading_accuracy',
         'attacking_short_passing',
         'attacking_volleys',
+        "\n",
         'Defense Statistics',
-        '-------',
+        '------------------',
         'defending_marking_awareness',
         'defending_standing_tackle',
         'defending_sliding_tackle',
+        "\n",
         'Goalkeeping',
         '-----------',
         'goalkeeping_diving',
@@ -268,8 +301,9 @@ HELP = ['Basic Statistics',
         'goalkeeping_positioning',
         'goalkeeping_reflexes',
         'goalkeeping_speed',
+        "\n",
         'Physical Statistics',
-        '--------',
+        '-------------------',
         'physic',
         'height_cm',
         'weight_kg',
@@ -279,8 +313,9 @@ HELP = ['Basic Statistics',
         'power_stamina',
         'power_strength',
         'power_long_shots',
+        "\n",
         'Mentality Statistics',
-        '----------',
+        '--------------------',
         'mentality_aggression',
         'mentality_interceptions',
         'mentality_positioning',

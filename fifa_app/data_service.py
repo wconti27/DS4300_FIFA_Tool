@@ -57,9 +57,9 @@ class MongoAPI():
             if field in categorical_fields:
                 match[field] = query_params_dict[field]
             elif field in fields_to_use_less_than:
-                match[field] = {"$lt": int(query_params_dict[field])}
+                match[field] = {"$lte": int(float(query_params_dict[field]))}
             else:
-                match[field] = {"$gt": int(query_params_dict[field])}
+                match[field] = {"$gte": int(float(query_params_dict[field]))}
         r = self.players_collection.find(filter=match, projection=projection, limit=50)
 
         result = {
