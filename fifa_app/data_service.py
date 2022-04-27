@@ -11,6 +11,7 @@ categorical_fields = [
     "nationality_name",
     "physic",
     "year",
+    "short_name"
 ]
 
 fields_to_use_less_than = [
@@ -56,9 +57,9 @@ class MongoAPI():
             if field in categorical_fields:
                 match[field] = query_params_dict[field]
             elif field in fields_to_use_less_than:
-                match[field] = {"$lt": int(query_params_dict[field])}
+                match[field] = {"$lte": int(float(query_params_dict[field]))}
             else:
-                match[field] = {"$gt": int(query_params_dict[field])}
+                match[field] = {"$gte": int(float(query_params_dict[field]))}
         r = self.players_collection.find(filter=match, projection=projection, limit=50)
 
         result = {
@@ -201,6 +202,7 @@ class MongoAPI():
                         for stat in team_stats:
                             team_stats[stat] -= int(original_player_stats[stat] / 11)
                             team_stats[stat] += int(new_player_stats[stat] / 11)
+                            new_player_stats["ultimate_team_position"] = player["ultimate_team_position"]
                     new_players.append(new_player_stats)
                 else:
                     new_players.append(player)

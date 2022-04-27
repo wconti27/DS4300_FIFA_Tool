@@ -11,6 +11,7 @@ def main():
         db = client["fifa"]
 
         players_collection = db["players"]
+        ultimate_team_collection = db["ultimate_teams"]
 
         for file in os.listdir("data/players"):
             data = pd.read_csv("data/players/" + file)
@@ -38,7 +39,12 @@ def main():
             players_collection.insert_many(data_json)
             print("Successfully loaded data for", file)
 
-        # TODO: Add indexes to data collection for quicker queries
+        print("Creating Indices for Faster Searching")
+        players_collection.create_index([('year', pymongo.ASCENDING), ('gender', pymongo.ASCENDING)])
+        players_collection.create_index([('year', pymongo.ASCENDING), ('gender', pymongo.ASCENDING), ('short_name', pymongo.ASCENDING)])
+        players_collection.create_index([('year', pymongo.ASCENDING), ('gender', pymongo.ASCENDING), ('overall', pymongo.DESCENDING)])
+
+        ultimate_team_collection.create_index([('year', pymongo.ASCENDING), ('username', pymongo.ASCENDING), ('team_name', pymongo.ASCENDING)])
 
     else:
         print("Data has been previously loaded.")

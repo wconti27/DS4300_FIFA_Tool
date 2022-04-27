@@ -70,7 +70,7 @@ def get_player_recommendation():
     year = request.args["year"]
     position = request.args["position"]
     wage = request.args["wage"]
-    stat = request.args["stat"]
+    stat = request.args["stat_to_optimize"]
     response = mongo_api.get_player_recommendation(year=year, position=position, wage=int(wage), stat_to_optimize=stat)
     return jsonify(response)
 
