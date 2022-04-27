@@ -1,12 +1,19 @@
 import pandas as pd
 import requests
 import json
+from fifa_app.type_map import projections
 
 API_ENDPOINT = "http://127.0.0.1:5000/api/v1"
 HEADERS = {'content-type': 'application/json'}
 
 def main():
-    pd.options.display.max_columns = 999
+    display = pd.options.display
+
+    display.max_columns = 999
+    display.max_rows = 1000
+    display.max_colwidth = 199
+    display.width = 1000
+
     type_q = choose_query()
     if type_q == 'Basic Search':
         ret = basic_search()
@@ -175,11 +182,32 @@ def prompt_builder(queries):
 
 def basic_search():
     year = choose_year()
+    projection = choose_projection()
     constraints = choose_constraints()
     constraints['year'] = year
+    constraints['projection'] = projection
     players = requests.get(f"{API_ENDPOINT}/players/", params=constraints).json()["players"]
     df = pd.DataFrame(players)
+    print('\n')
     return df
+    
+def sort_dataframe(df):
+    first_column = df.pop('short_name')
+    second_column = df.pop('overall')
+    df.insert(0, 'short_name', first_column)
+    df.insert(1, 'overall', second_column)
+    return df
+
+def choose_projection():
+    projection = None
+    print('\nAvailable stat projections are: "basic", "defending", "attacking", "goalkeeping", "mentality", and "physical"')
+    while projection is None:
+        temp = input('Please enter a projection type (stat-group) to return. Options are above: \n')
+        if temp in list(projections.keys()):
+            break
+        else:
+            print('\nPlease input a projection type from the list above!')
+    return temp
 
 def get_names(name):
     names = name.split(" ")
@@ -202,6 +230,7 @@ def advanced_search():
     if len(rets) == 0:
         print('Player not found')
     else:
+        projection = choose_projection()
         constraints = choose_constraints(counter=1)
         rets = pd.DataFrame(rets['players'])
         rets = (rets[['club_position', 'overall', 'pace', 'shooting', 'passing', 'dribbling', 'defending']].iloc[0]).to_dict()
@@ -209,10 +238,11 @@ def advanced_search():
             rets[key] = constraints[key]
 
         rets['year'] = year
+        rets['projection'] = projection
         players = requests.get(f"{API_ENDPOINT}/players/", params=rets).json()["players"]
         df = pd.DataFrame(players)
+        df = sort_dataframe(df)
         return df
-
 
 def choose_constraints(counter=0):
     print("\nFor a list of fields to search on, type --help")
@@ -224,7 +254,7 @@ def choose_constraints(counter=0):
         if counter == 0:
             temp = input('Enter field and value separated by a comma. Value must be 1-99 for attributes.\n')
         else:
-            temp = input('\nType \'search\' to search on inputted constraints or add another constraint: Enter field and value separated by a comma. Value must be 1-99 for attributes\n')
+            temp = input('\nType \'search\' to search on inputted constraints or add another: Enter field and value separated by comma. Value must be 1-99 for attributes\n')
         if temp.lower() == 'search':
             stop = True
             break

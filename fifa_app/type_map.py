@@ -1,13 +1,10 @@
 basic_projection = {
     "short_name": 1,
     "overall": 1,
-    "potential": 1,
     "wage_eur": 1,
     "club_name": 1,
-    "league_name": 1,
     "club_position": 1,
     "player_positions": 1,
-    "nationality_name": 1,
     "pace": 1,
     "shooting": 1,
     "passing": 1,
@@ -34,7 +31,6 @@ defending_projection = {
     "defending_marking_awareness": 1,
     "defending_standing_tackle": 1,
     "defending_sliding_tackle": 1,
-    "attacking_finishing": 1,
 }
 
 goalkeeping_projection = {
