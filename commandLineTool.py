@@ -113,7 +113,6 @@ def replace_player():
     names_rep = get_names(player_to_replace)
     for i in names_rep:
         if i in list(previous_team['short_name']):
-            print(i, "previous player")
             body = {
                 "user": username, 
                 "team_name": teamname, 
@@ -128,7 +127,10 @@ def replace_player():
             print('Player to replace not on team')
     body = {"username": username, "team_name": teamname}
     team = requests.get("http://127.0.0.1:5000/api/v1/team/", params=body).json()
-    print(pd.DataFrame(team["players"]))
+    df = pd.DataFrame(team["players"])
+    df = sort_dataframe(df)
+    print('\n')
+    print(df)
 
 def recommendation():
     year = choose_year()
@@ -156,7 +158,9 @@ def recommendation():
         "position": position,
         "stat_to_optimize": stat,
     }
-    print(pd.DataFrame(requests.get(f"{API_ENDPOINT}/team/replace/", params=body).json()['players']))
+    df = pd.DataFrame(requests.get(f"{API_ENDPOINT}/team/replace/", params=body).json()['players'])
+    df = sort_dataframe(df)
+    print(df)
 
 def choose_query():
     print("Fifa Search engine V1\n")
@@ -188,6 +192,7 @@ def basic_search():
     constraints['projection'] = projection
     players = requests.get(f"{API_ENDPOINT}/players/", params=constraints).json()["players"]
     df = pd.DataFrame(players)
+    df = sort_dataframe(df)
     print('\n')
     return df
     
@@ -242,6 +247,7 @@ def advanced_search():
         players = requests.get(f"{API_ENDPOINT}/players/", params=rets).json()["players"]
         df = pd.DataFrame(players)
         df = sort_dataframe(df)
+        print('\n')
         return df
 
 def choose_constraints(counter=0):
