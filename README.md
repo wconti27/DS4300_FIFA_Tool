@@ -33,11 +33,7 @@ NOTE: If not already install, use pip to install package venv through terminal:
     set FLASK_ENV=development
     flask run
 
-### For performing requests from CLI (without having CLI tool written yet)
-    # Import all data, start flask with above commands
-    # Open another terminal, type 'python' to enter into python interpreter
-    import requests
-    body = {"year": "2015", "pace": 90, "projection": "attacking"} # body can be anything you need to search for to test API
-    r = requests.get("http://127.0.0.1:5000/api/v1/players/", params=body)
-    r.json() # returns json formatted results
+### For using the Fifa Tool
+    Run the commandLineTool.py file from terminal
+    Enter your Ultimate Team, any search queries you want, and enjoy!
 
